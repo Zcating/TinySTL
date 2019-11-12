@@ -1,2 +1,2 @@
 # TinySTL
-realize the C++ Standard Library &amp; make it readable.
+Realize the C++ Standard Library &amp; make it readable.
