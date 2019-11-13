@@ -1,58 +1,122 @@
 #include <cstddef>
-struct InputIteratorTag {};
-struct OutputIteratorTag {};
-struct ForwardIteratorTag : public InputIteratorTag {};
-struct BidirectionalIteratorTag : public ForwardIteratorTag {};
-struct RandomAccessIteratorTag : public BidirectionalIteratorTag {};
+#include <type_traits>
+namespace tinystd {
 
-template<class Category, class T, class Distance = ptrdiff_t, class Pointer = T*, class Reference = T&>
-struct Iterator {
-    typename IteratorCategory = Category;
-    typename ValueType = T;
-    typename DifferenceType = Distance;
-    typename PointerType = Pointer;
-    typename ReferenceType = Reference;
-};
+    // Iterator category
+    struct InputIteratorTag {};
+    struct OutputIteratorTag {};
+    struct ForwardIteratorTag : public InputIteratorTag {};
+    struct BidirectionalIteratorTag : public ForwardIteratorTag {};
+    struct RandomAccessIteratorTag : public BidirectionalIteratorTag {};
 
-template<class I>
-struct IteratorTraits {
-    typedef typename I::IteratorCategory    IteratorCategory;
-    typedef typename I::ValueType           ValueType;
-    typedef typename I::DifferenceType      DifferenceType;
-    typedef typename I::PointerType         PointerType;
-    typedef typename I::ReferenceType       ReferenceType;
-};
+    // Iterator defination
+    template<class Category, class T, class Distance = ptrdiff_t, class Pointer = T*, class Reference = T&>
+    struct Iterator { 
+        using IteratorCategory = Category;
+        using ValueType = T;
+        using DifferenceType = Distance;
+        using PointerType = Pointer;
+        using ReferenceType = Reference;
+    };
 
-template<class T>
-struct IteratorTraits<T*> {
-    typedef RandomAccessIteratorTag IteratorCategory;
-    typedef T ValueType;
-    typedef ptrdiff_t DifferenceType;
-    typedef T* PointerType;
-    typedef T& ReferenceType;
-};
+    template<class I>
+    struct IteratorTraits {
+        using IteratorCategory  = typename I::IteratorCategory;
+        using ValueType         = typename I::ValueType;
+        using DifferenceType    = typename I::DifferenceType;
+        using PointerType       =  typename I::PointerType;
+        using ReferenceType     = typename I::ReferenceType;
+    };
+
+    // T* Partial Specialization
+    template<class T>
+    struct IteratorTraits<T*> {
+        typedef RandomAccessIteratorTag   IteratorCategory;
+        typedef typename T          ValueType;
+        typedef ptrdiff_t           DifferenceType;
+        typedef typename T*         PointerType;
+        typedef typename T&         ReferenceType;
+    };
+
+    // const T* Partial Specialization
+    template<class T>
+    struct IteratorTraits<const T*> {
+        typedef RandomAccessIteratorTag   IteratorCategory;
+        typedef typename T          ValueType;
+        typedef ptrdiff_t           DifferenceType;
+        typedef const T*            PointerType;
+        typedef const T&            ReferenceType;
+    };
 
 
-template<class T>
-struct IteratorTraits<const T*> {
-    typedef RandomAccessIteratorTag IteratorCategory;
-    typedef T ValueType;
-    typedef ptrdiff_t DifferenceType;
-    typedef const T* PointerType;
-    typedef const T& ReferenceType;
-};
+    template<class T, class Distance = ptrdiff_t>
+    struct InputIterator: public Iterator<InputIteratorTag, T, Distance> {};
 
-// decide the distance type
-template<class I>
-inline typename IteratorTraits<I>::IteratorCategory distanceType(const I&) {
-    return static_cast<typename IteratorTraits<I>::DifferenceType*>(0);
+    template<class T, class Distance = ptrdiff_t>
+    struct OutputIterator: public Iterator<OutputIteratorTag, T, Distance> {};
+
+    template<class T, class Distance = ptrdiff_t>
+    struct ForwardIterator: public Iterator<ForwardIteratorTag, T, Distance> {};
+
+    template<class T, class Distance = ptrdiff_t>
+    struct BidirectionalIterator: public Iterator<BidirectionalIteratorTag, T, Distance> {};
+    
+    template<class T, class Distance = ptrdiff_t>
+    struct RandomAccessIterator: public Iterator<RandomAccessIteratorTag, T, Distance> {};
+    
+
+    template <class T, class Distance> 
+    inline InputIteratorTag iteratorCategory(const InputIterator<T, Distance>&) { 
+        return InputIteratorTag(); 
+    }
+
+
+    template <class T, class Distance> 
+    inline OutputIteratorTag iteratorCategory(const OutputIterator<T, Distance>&) { 
+        return OutputIteratorTag(); 
+    }
+
+    template <class T, class Distance> 
+    inline ForwardIteratorTag iteratorCategory(const ForwardIterator<T, Distance>&)
+    { return ForwardIteratorTag(); }
+
+    template <class T, class Distance> 
+    inline BidirectionalIteratorTag iteratorCategory(const BidirectionalIterator<T, Distance>&){ 
+        return BidirectionalIteratorTag(); 
+    }
+
+    template <class T, class Distance>
+    inline RandomAccessIteratorTag iteratorCategory(const RandomAccessIterator<T, Distance>&) { 
+        return RandomAccessIteratorTag(); 
+    }
+
+    template <class I, class Distance>
+    inline void advance(I& i, Distance n, InputIteratorTag) {
+        while (n--) {
+            ++i;
+        }
+    }
+
+    template <class I, class Distance>
+    inline void advance(I& i, Distance n, BidirectionalIteratorTag) {
+        if (n >= 0) {
+            while (n--) {
+                ++i;
+            }
+        } else {
+            while (n++) {
+                --i;
+            }
+        }
+    }
+
+    template <class I, class Distance>
+    inline void __advance(I& i, Distance n, RandomAccessIteratorTag) {
+        i += n;
+    }
+
+    template <class InputIter, class Distance>
+    inline void advance(InputIter& i, Distance n) {
+        advance(i, n, iteratorCategory(i));
+    }
 }
-
-
-// decide the value type
-template<class I>
-inline typename IteratorTraits<I>::IteratorCategory valueType(const I&) {
-    return static_cast<typename IteratorTraits<I>::ValueType*>(0);
-}
-
-
