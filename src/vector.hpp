@@ -1,12 +1,14 @@
-#include <cstddef>
-#include "core/iterator.hpp"
+#pragma once
 
-#include <allocators>
+#include <cstddef>
+#include "core/utility.hpp"
+#include "core/allocator.hpp"
+#include "core/iterator.hpp"
 
 namespace tinystd 
 {
 
-template<class T, class Alloc = std::allocator<T>>
+template<class T, class Alloc = Allocator<T>>
 class Vector {
 public: 
     using ValueType = T;
@@ -26,21 +28,108 @@ protected:
     Iterator endOfStorage;
     AllocType alloc;
 
+    void insert(Iterator position, ConstReference value) {
+        
+    };
+
+    // 
+    void fillInitialize(SizeType n, ConstReference value) {
+        start = alloc.allocate(n);
+        finish = start + n;
+        endOfStorage = finish;
+    }
+
+    Iterator erase(Iterator position) {
+        if (position + 1 != end()) {
+            copy(position + 1, finish, position);
+        }
+        finish -= 1;
+        destroy(finish);
+        return position;
+    }
+
+    Iterator erase(Iterator first, Iterator last) {
+        auto i = copy(last, finish, first);
+        destroy(i, finish);
+        finish = finish - (last - first);
+        return first;
+    }
         
 public:
     Vector(): start(0), finish(0), endOfStorage(0) {};
-    Vector(SizeType n, ConstReference value): alloc(AllocType()) {
-        start = alloc.allocate(n);
-        finish = start + n;
-    };
-    ~Vector();
-    Iterator begin() const;
-    Iterator end() cosnt;
-    SizeType size() const;
-    Reference operator[](SizeType index) const;
-    Reference at(SizeType index) const;
-    void push(const Reference newElement);
-    void pop(const Reference newElement);
-}
 
+    Vector(SizeType n, ConstReference value): alloc(AllocType()) {
+        fillInitialize(n, value);
+    };
+    Vector(int n, ConstReference value) : alloc(AllocType()) {
+        fillInitialize(n, value);
+    }
+
+    Vector(long n, ConstReference value) : alloc(AllocType()) {
+        fillInitialize(n, value);
+    }
+
+    explicit Vector(SizeType n) : alloc(AllocType()) {
+        fillInitialize(n, T());
+    }
+
+    ~Vector() {
+        alloc.deallocate(start);
+    }
+    
+    Iterator begin() const { return start; }
+    
+    Iterator end() const { return finish; }
+    
+    SizeType size() const { return SizeType(end() - begin()) }
+
+    SizeType capacity() const { return SizeType(endOfStorage - begin()); }
+
+    bool empty() const {  }
+
+    Reference operator[](SizeType index) const { return *(begin() + index); }
+
+    Reference at(SizeType index) const { return *(begin() + index); }
+    
+
+    Reference front() {
+        return *begin();
+    }
+
+    Reference back() {
+        return *(end() - 1);
+    }
+
+    void push(ConstReference newElement) {
+        if (finish != endOfStorage) {
+            new (finish)T(newElement);
+            finish += 1;
+        }
+        else {
+            insert(end(), newElement);
+        }
+    }
+
+    void popBack() {
+        finish -= 1;
+        destroy(finish);
+    }
+
+    void resize(SizeType newSize, ConstReference x) {
+        if (newSize < size()) {
+            erase(begin() + newSize, end());
+        } else {
+            insert(end(), newSize - size(), x);
+        }
+    }
+
+    void resize(SizeType newSize) {
+        resize(newSize, T());
+    }
+
+    clear() {
+        erase(begin(), end());
+    }
 };
+
+}

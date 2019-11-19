@@ -1,6 +1,8 @@
+#pragma once
+
 #include <cstddef>
 #include <type_traits>
-namespace tinystd 
+namespace tinystd
 {
 
 // Iterator category
@@ -61,10 +63,10 @@ struct ForwardIterator: public Iterator<ForwardIteratorTag, T, Distance> {};
 
 template<class T, class Distance = ptrdiff_t>
 struct BidirectionalIterator: public Iterator<BidirectionalIteratorTag, T, Distance> {};
-    
+
 template<class T, class Distance = ptrdiff_t>
 struct RandomAccessIterator: public Iterator<RandomAccessIteratorTag, T, Distance> {};
-    
+
 
 template <class T, class Distance> 
 inline InputIteratorTag iteratorCategory(const InputIterator<T, Distance>&) { 
