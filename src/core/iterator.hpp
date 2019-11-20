@@ -123,29 +123,5 @@ inline void advance(InputIter& i, Distance n) {
     advance(i, n, iteratorCategory(i));
 }
 
-template<class ForwardIterator, class T>
-void uninitializedFill(ForwardIterator first, ForwardIterator last, const T& x) {
-    
-}
-
-template<class ForwardIterator, class Size, class T>
-void uninitializedFillN(ForwardIterator first, Size n, const T& x) {
-    return __uninitialized_fill_n(first, n, x, value_type(first));
-}
-
-
-template<class ForwardIterator, class Size, class T, class T1>
-void __uninitialized_fill_n(ForwardIterator first, Size n, const T& x, T1) {
-    return __uninitialized_fill_n_aux(first, n, x, std::is_pod<T>());
-}
-
-template<class ForwardIterator, class Size, class T>
-void __uninitialized_fill_n_aux(ForwardIterator first, Size n, const T& x, std::false_type) {
-    
-}
-
-template<class ForwardIterator, class Size, class T>
-void __uninitialized_fill_n_aux(ForwardIterator first, Size n, const T& x, std::true_type) {
-}
 
 }

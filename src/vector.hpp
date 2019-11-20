@@ -29,7 +29,18 @@ protected:
     AllocType alloc;
 
     void insert(Iterator position, ConstReference value) {
-        
+        if (n == 0) {
+            return;
+        }
+        if (SizeType(endOfStorage - finish) >= n) {
+            auto xCopy = x;
+            auto elementsAfter = finish -position;
+            auto oldFinish = finish;
+
+            if (elementsAfter > n) {
+                unini
+            }
+        }
     };
 
     // 
