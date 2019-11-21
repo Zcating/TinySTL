@@ -26,33 +26,51 @@ protected:
     Iterator start;
     Iterator finish;
     Iterator endOfStorage;
-    AllocType alloc;
+    AllocType allocator;
 
     void insert(Iterator position, ConstReference value) {
-        if (n == 0) {
-            return;
+        if (finish != endOfStorage) {
+            construct(finish, *(finish - 1));
+            ++finish;
+            auto valueCopy = value;
+            std::copy_backward(position, finish - 2, finish - 1);
+            *position = valueCopy;
         }
-        if (SizeType(endOfStorage - finish) >= n) {
-            auto xCopy = x;
-            auto elementsAfter = finish -position;
-            auto oldFinish = finish;
-
-            if (elementsAfter > n) {
-                unini
+        else {
+            const auto oldSize = size();
+            const auto length = oldSize != 0 ? 2 * oldSize : 1;
+            auto newStart = allocator.allocate(length);
+            auto newFinish = newStart;
+            try {
+                newFinish = uninitialized_copy(start, position, newStart);
+                construct(newFinish, value);
+                ++newFinish;
+                newFinish = uninitialized_copy(position, finish, newFinish);
             }
+            catch (...) {
+                destroy(newStart, newFinish);
+                allocator.deallocate(newStart, length);
+            }
+
+            destroy(begin(), end());
+            deallocate();
+
+            start = newStart;
+            finish = newFinish;
+            endOfStorage = newStart + len;
         }
     };
 
     // 
     void fillInitialize(SizeType n, ConstReference value) {
-        start = alloc.allocate(n);
+        start = allocator.allocate(n);
         finish = start + n;
         endOfStorage = finish;
     }
 
     Iterator erase(Iterator position) {
         if (position + 1 != end()) {
-            copy(position + 1, finish, position);
+            std::copy(position + 1, finish, position);
         }
         finish -= 1;
         destroy(finish);
@@ -65,34 +83,43 @@ protected:
         finish = finish - (last - first);
         return first;
     }
+
+    void deallocate() {
+        allocator.deallocate(start);
+    }
         
 public:
     Vector(): start(0), finish(0), endOfStorage(0) {};
 
-    Vector(SizeType n, ConstReference value): alloc(AllocType()) {
+    Vector(SizeType n, ConstReference value): allocator(AllocType()) {
         fillInitialize(n, value);
     };
-    Vector(int n, ConstReference value) : alloc(AllocType()) {
+    Vector(int n, ConstReference value) : allocator(AllocType()) {
         fillInitialize(n, value);
     }
 
-    Vector(long n, ConstReference value) : alloc(AllocType()) {
+    Vector(long n, ConstReference value) : allocator(AllocType()) {
         fillInitialize(n, value);
     }
 
-    explicit Vector(SizeType n) : alloc(AllocType()) {
+    //Vector(const std::initializer_list<T> &iList) : Allocator(AllocType()) {
+    //    start = alloc.allocate(iList.size());
+
+    //}
+
+    explicit Vector(SizeType n) : allocator(AllocType()) {
         fillInitialize(n, T());
     }
 
     ~Vector() {
-        alloc.deallocate(start);
+        deallocate();
     }
     
     Iterator begin() const { return start; }
     
     Iterator end() const { return finish; }
     
-    SizeType size() const { return SizeType(end() - begin()) }
+    SizeType size() const { return SizeType(end() - begin()); }
 
     SizeType capacity() const { return SizeType(endOfStorage - begin()); }
 
@@ -111,9 +138,9 @@ public:
         return *(end() - 1);
     }
 
-    void push(ConstReference newElement) {
+    void push(ConstReference x) {
         if (finish != endOfStorage) {
-            new (finish)T(newElement);
+            construct(finish, x);
             finish += 1;
         }
         else {
@@ -138,7 +165,7 @@ public:
         resize(newSize, T());
     }
 
-    clear() {
+    void clear() {
         erase(begin(), end());
     }
 };

@@ -25,7 +25,7 @@ public:
 
     Pointer allocate(SizeType n, const void* hint = 0) {
         auto tmp = (T*)(new (size_t)(n * sizeof(T)));
-        if (tmp == = 0) {
+        if (tmp == 0) {
             std::cerr << "out of memery." << std::endl;
             exit(1);
         }

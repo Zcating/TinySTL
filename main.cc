@@ -4,9 +4,9 @@
 #include <vector>
 
 int main() {
-    //auto alloc = std::allocator<int>();
-    //auto ints = alloc.allocate(10);
-    //alloc.deallocate(ints, 10);
-    std::vector<int>().clear;
-
+    auto vec = tinystd::Vector<int>(10, 0);
+    for (int i = 0; i < vec.size(); i++) {
+        printf("%d \n", vec[i]);
+    }
+    system("pause");
 }
