@@ -22,6 +22,7 @@ struct Iterator {
     using ReferenceType     = Reference;
 };
 
+// Type extraction
 template<class I>
 struct IteratorTraits {
     using IteratorCategory  = typename I::IteratorCategory;
@@ -121,6 +122,11 @@ inline void advance(I& i, Distance n, RandomAccessIteratorTag) {
 template <class InputIter, class Distance>
 inline void advance(InputIter& i, Distance n) {
     advance(i, n, iteratorCategory(i));
+}
+
+template <class Iterator>
+inline auto valueType(const Iterator &) {
+    return static_cast<typename IteratorTraits<Iterator>::ValueType*>(0);
 }
 
 

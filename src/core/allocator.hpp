@@ -23,8 +23,8 @@ public:
     using SizeType = size_t;
     using DifferenceType = ptrdiff_t;
 
-    Pointer allocate(SizeType n, const void* hint = 0) {
-        auto tmp = (T*)(new (size_t)(n * sizeof(T)));
+    T* allocate(SizeType size, const void* hint = 0) {
+        auto tmp = (Pointer)malloc(SizeType(size * sizeof(T)));
         if (tmp == 0) {
             std::cerr << "out of memery." << std::endl;
             exit(1);
@@ -33,8 +33,8 @@ public:
     }
 
 
-    void deallocate(Pointer ptr) {
-        delete ptr;
+    void deallocate(Pointer ptr, SizeType n) {
+        free(ptr);
     }
 };
 

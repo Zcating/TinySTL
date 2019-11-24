@@ -28,7 +28,7 @@ protected:
     Iterator endOfStorage;
     AllocType allocator;
 
-    void insert(Iterator position, ConstReference value) {
+    void insertAux(Iterator position, ConstReference value) {
         if (finish != endOfStorage) {
             construct(finish, *(finish - 1));
             ++finish;
@@ -38,32 +38,79 @@ protected:
         }
         else {
             const auto oldSize = size();
+            // if old size is 0, let it configure to 1
+            // if old size is not 0, let it configure to its 2 times.
             const auto length = oldSize != 0 ? 2 * oldSize : 1;
             auto newStart = allocator.allocate(length);
             auto newFinish = newStart;
             try {
-                newFinish = uninitialized_copy(start, position, newStart);
+                newFinish = uninitializedCopy(start, position, newStart);
                 construct(newFinish, value);
                 ++newFinish;
-                newFinish = uninitialized_copy(position, finish, newFinish);
+                newFinish = uninitializedCopy(position, finish, newFinish);
             }
             catch (...) {
                 destroy(newStart, newFinish);
                 allocator.deallocate(newStart, length);
             }
 
-            destroy(begin(), end());
+            // destruct & release
+            destroy(start, finish);
             deallocate();
 
+            // adjust iterator, point to new one
             start = newStart;
             finish = newFinish;
-            endOfStorage = newStart + len;
+            endOfStorage = newStart + length;
         }
     };
+    
+    void insert(Iterator position, SizeType n, ConstReference x) {
+        if (n == 0) {
+            return;
+        }
+        if (SizeType(endOfStorage - finish) >= n) {
+            auto xCopy = x;
+            const auto elementAfter = finish - position;
+            auto oldFinish = finish;
+            if (elementAfter > n) {
+                uninitializedCopy(finish - n, finish, finish);
+                finish += n;
+                std::copy_backward(position, oldFinish - n, oldFinish);
+                uninitialized_fill(position, oldFinish, xCopy);
+            }
+        }
+        else {
+            const auto oldSize = size();
+            // if old size is 0, let it configure to 1
+            // if old size is not 0, let it configure to its 2 times.
+            const auto length = oldSize != 0 ? 2 * oldSize : 1;
+            auto newStart = Allocator::allocate(length);
+            auto newFinish = newStart;
+            try {
+                newFinish = uninitializedCopy(start, position, newStart);
+                newFinish = uninitialized_fill_n(newFinish, n, x);
+                newFinish = uninitializedCopy(position, finish, newFinish);
+            }
+            catch (...) {
+                destroy(newStart, newFinish);
+                allocator.deallocate(newStart, length);
+                throw;
+            }
+            destroy(start, finish);
+            deallocate();
+            start = newStart;
+            finish = newFinish;
+            endOfStorage = newStart + length;
+        }
+    }
+
+
 
     // 
     void fillInitialize(SizeType n, ConstReference value) {
         start = allocator.allocate(n);
+        std::fill_n(start, n, value);
         finish = start + n;
         endOfStorage = finish;
     }
@@ -78,14 +125,16 @@ protected:
     }
 
     Iterator erase(Iterator first, Iterator last) {
-        auto i = copy(last, finish, first);
+        auto i = std::copy(last, finish, first);
         destroy(i, finish);
         finish = finish - (last - first);
         return first;
     }
 
     void deallocate() {
-        allocator.deallocate(start);
+        if (start) {
+            allocator.deallocate(start, endOfStorage - start);
+        }
     }
         
 public:
@@ -104,7 +153,6 @@ public:
 
     //Vector(const std::initializer_list<T> &iList) : Allocator(AllocType()) {
     //    start = alloc.allocate(iList.size());
-
     //}
 
     explicit Vector(SizeType n) : allocator(AllocType()) {
@@ -112,6 +160,7 @@ public:
     }
 
     ~Vector() {
+        destroy(start, finish);
         deallocate();
     }
     
@@ -144,7 +193,7 @@ public:
             finish += 1;
         }
         else {
-            insert(end(), newElement);
+            insertAux(end(), x);
         }
     }
 
