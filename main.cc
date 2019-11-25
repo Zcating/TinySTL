@@ -3,16 +3,15 @@
 //#inlcude <allocator>
 #include <vector>
 
-struct Fucker {
+struct TestData {
     int val;
     int val2;
-    Fucker(int val = 1, int val2 = 2): val(val), val2(val2) {}
+    TestData(int val = 1, int val2 = 2): val(val), val2(val2) {}
 };
 
 int main() {
-    /*auto fuck = std::enable_if<std::is_destructible<std::string>::value>();*/
-    auto vec = tinystd::Vector<Fucker>(10, Fucker());
-    vec.push(Fucker(10, 20));
+    auto vec = tinystd::Vector<TestData>(10, TestData());
+    vec.push(TestData(10, 20));
     for (auto i = 0; i < vec.size(); i++) {
         //printf("%d \n", vec[i]);
         printf("%d %d \n", vec[i].val, vec[i].val2);
