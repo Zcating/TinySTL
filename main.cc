@@ -2,7 +2,7 @@
 #include "src/vector.hpp"
 //#inlcude <allocator>
 #include <vector>
-
+#include <list>
 struct TestData {
     int val;
     int val2;
@@ -16,7 +16,6 @@ int main() {
         //printf("%d \n", vec[i]);
         printf("%d %d \n", vec[i].val, vec[i].val2);
     }
-
     printf("capacity = %d\n", vec.capacity());
     system("pause");
 }
