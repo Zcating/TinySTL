@@ -130,4 +130,25 @@ inline auto valueType(const Iterator &) {
 }
 
 
+template<class InputIterator>
+inline IteratorTraits<InputIterator>::DifferenceType distance(InputIterator first, InputIterator last) {
+    using Category = IteratorTraits<InputIterator>::IteratorCategory;
+    return __distance(first, last, Category());
+}
+
+template<class InputIterator>
+inline IteratorTraits<InputIterator>::DifferenceType __distance(InputIterator first, InputIterator last, InputIteratorTag) {
+    auto n = 0;
+    while (first != last) {
+        first++;
+        n++;
+    }
+    return n;
+}
+
+template<class InputIterator>
+inline IteratorTraits<InputIterator>::DifferenceType __distance(InputIterator first, InputIterator last, RandomAccessIteratorTag) {
+    return last - first;
+}
+
 }

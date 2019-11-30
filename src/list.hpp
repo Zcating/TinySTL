@@ -22,14 +22,16 @@ namespace tinystd
         using ValueType = T;
         using Pointer = P;
         using Reference = R;
-        using LinkType = ListNode_<T>*;
+        using LinkType = ListNode_<T> *;
         using SizeType = size_t;
         using DifferenceType = ptrdiff_t;
 
+    public:
 
         LinkType node;
 
-        ListIterator(LinkType x): node(x) {};
+        ListIterator(LinkType x): node(x) {
+        };
 
         ListIterator() {};
 
@@ -41,19 +43,23 @@ namespace tinystd
         Reference operator*() const { return (*node).data; }
 
         Pointer operator->() const { return &(operator*()); }
+
         Self& operator++() {
             node = (LinkType)((*node).next);
             return *this;
         }
+
         Self operator++(int) {
             auto tmp = *this;
             ++*this;
             return tmp;
         }
+
         Self& operator--() {
             node = (LinkType)((*node).prev);
             return *this;
         }
+
         Self operator--(int) {
             auto tmp = *this;
             --*this;
@@ -71,15 +77,62 @@ namespace tinystd
         using ConstReference = const T&;
         using ListNode = ListNode_<T>;
         using AllocatorType = Allocator;
+        using SizeType = size_t;
+        using DifferenceType = ptrdiff_t;
+
     public:
         using LinkType = ListNode*;
 
-        List() {
+        AllocatorType allocator;
+        LinkType node;
 
+        List() : allocator(AllocatorType()) {
+            emptyInit();
         }
-        ~List() {
 
+        ~List() {}
+        Iterator begin() { return (LinkType)(*node).next; }
+        Iterator end() { return node; }
+
+        bool empty() const { return node->next == node; }
+
+        SizeType size() const {
+            return distance(begin(), end());
         }
-       
+
+        Reference front() {
+            return *begin();
+        }
+
+        Reference back() {
+            return *(--end());
+        }
+
+        pushFront(ConstReference x) {
+            
+        }
+
+    private: 
+        LinkType getNode() {
+            return allocator.allocate();
+        }
+        void putNode(LinkType node) {
+            allocator.deallocate(node);
+        }
+        LinkType createNode(ConstReference x) {
+            auto p = getNode();
+            construct(&p->data, x);
+            return p;
+        }
+        void destroyNode(LinkType p) {
+            destroy(&p->data);
+            putNode(p);
+        }
+
+        void emptyInit() {
+            node = getNode();
+            node->next = node;
+            node->prev = node;
+        }
     };
 }

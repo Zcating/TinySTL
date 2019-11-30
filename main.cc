@@ -1,8 +1,9 @@
 #include <iostream>
 #include "src/vector.hpp"
+#include "src/list.hpp"
 //#inlcude <allocator>
-#include <vector>
-#include <list>
+//#include <vector>
+////#include <list>
 struct TestData {
     int val;
     int val2;
@@ -17,5 +18,9 @@ int main() {
         printf("%d %d \n", vec[i].val, vec[i].val2);
     }
     printf("capacity = %d\n", vec.capacity());
+
+    auto list = tinystd::List<int>();
+    list
+
     system("pause");
 }
