@@ -19,26 +19,27 @@ namespace tinystd
         using Self = ListIterator_<T, R, P>;
 
         using IteratorCategory = BidirectionalIteratorTag;
+
         using ValueType = T;
         using Pointer = P;
         using Reference = R;
-        using LinkType = ListNode_<T> *;
         using SizeType = size_t;
         using DifferenceType = ptrdiff_t;
 
-    public:
+        using LinkType = ListNode_<T> *;
+
 
         LinkType node;
 
-        ListIterator(LinkType x): node(x) {
+        ListIterator_(LinkType x): node(x) {
         };
 
-        ListIterator() {};
+        ListIterator_() {};
 
-        ListIterator(const Iterator& x): node(x.node) {}
+        ListIterator_(const Iterator& x): node(x.node) {}
 
-        bool operator==(const Self& x) const { return node == x.node; }
-        bool operator!=(const Self& x) const { return node != x.node; }
+        bool operator == (const Self& x) const { return node == x.node; }
+        bool operator != (const Self& x) const { return node != x.node; }
 
         Reference operator*() const { return (*node).data; }
 
@@ -67,22 +68,22 @@ namespace tinystd
         }
     };
 
-    template<class T, class Allocator = tinystd::Allocator<T>>
+    template<class T>
     class List
     {
+        using ListNode = ListNode_<T>;
+
         using ValueType = T;
-        using Iterator = T*;
+        using Iterator = ListIterator_<T, T&, T*>;
         using ConstIterator = const T*;
         using Reference = T & ;
         using ConstReference = const T&;
-        using ListNode = ListNode_<T>;
-        using AllocatorType = Allocator;
+        using AllocatorType = Allocator<ListNode>;
         using SizeType = size_t;
         using DifferenceType = ptrdiff_t;
 
     public:
-        using LinkType = ListNode*;
-
+        using LinkType = ListNode *;
         AllocatorType allocator;
         LinkType node;
 
@@ -108,13 +109,33 @@ namespace tinystd
             return *(--end());
         }
 
-        pushFront(ConstReference x) {
-            
+        void pushFront(ConstReference x) {
+            insert(begin(), x);
         }
+
+        void pushBack(ConstReference x) {
+            insert(end(), x);
+        }
+
+        auto erase(Iterator position) -> decltype(position) {
+            auto nextNode = LinkType(position.node->next);
+            auto prevNode = LinkType(position.node->prev);
+            auto 
+        }
+
+        Iterator insert(Iterator position, ConstReference x) {
+            auto tmp = createNode(x);
+            tmp->next = position.node;
+            tmp->prev = position.node->prev;
+            (LinkType(position.node->prev))->next = tmp;
+            position.node->prev = tmp;
+            return tmp;
+        }
+
 
     private: 
         LinkType getNode() {
-            return allocator.allocate();
+            return allocator.allocate(1);
         }
         void putNode(LinkType node) {
             allocator.deallocate(node);

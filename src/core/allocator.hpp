@@ -23,13 +23,13 @@ public:
     using SizeType = size_t;
     using DifferenceType = ptrdiff_t;
 
-    T* allocate(SizeType size, const void* hint = 0) {
-        auto tmp = (Pointer)malloc(SizeType(size * sizeof(T)));
+    Pointer allocate(SizeType size, const void* hint = 0) {
+        auto tmp = malloc(SizeType(size * sizeof(T)));
         if (tmp == 0) {
             std::cerr << "out of memery." << std::endl;
             exit(1);
         }
-        return tmp;
+        return (Pointer)tmp;
     }
 
 

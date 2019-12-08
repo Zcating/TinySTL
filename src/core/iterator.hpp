@@ -15,11 +15,11 @@ struct RandomAccessIteratorTag : public BidirectionalIteratorTag {};
 // Iterator defination
 template<class Category, class T, class Distance = ptrdiff_t, class Pointer = T*, class Reference = T&>
 struct Iterator { 
-    using IteratorCategory  = Category;
-    using ValueType         = T;
-    using DifferenceType    = Distance;
-    using PointerType       = Pointer;
-    using ReferenceType     = Reference;
+    using IteratorCategory  = typename Category;
+    using ValueType         = typename T;
+    using DifferenceType    = typename Distance;
+    using PointerType       = typename Pointer;
+    using ReferenceType     = typename Reference;
 };
 
 // Type extraction
@@ -28,7 +28,7 @@ struct IteratorTraits {
     using IteratorCategory  = typename I::IteratorCategory;
     using ValueType         = typename I::ValueType;
     using DifferenceType    = typename I::DifferenceType;
-    using PointerType       =  typename I::PointerType;
+    using PointerType       = typename I::PointerType;
     using ReferenceType     = typename I::ReferenceType;
 };
 
@@ -81,8 +81,9 @@ inline OutputIteratorTag iteratorCategory(const OutputIterator<T, Distance>&) {
 }
 
 template <class T, class Distance> 
-inline ForwardIteratorTag iteratorCategory(const ForwardIterator<T, Distance>&)
-{ return ForwardIteratorTag(); }
+inline ForwardIteratorTag iteratorCategory(const ForwardIterator<T, Distance>&){ 
+    return ForwardIteratorTag(); 
+}
 
 template <class T, class Distance> 
 inline BidirectionalIteratorTag iteratorCategory(const BidirectionalIterator<T, Distance>&){ 
@@ -95,14 +96,14 @@ inline RandomAccessIteratorTag iteratorCategory(const RandomAccessIterator<T, Di
 }
 
 template <class I, class Distance>
-inline void advance(I& i, Distance n, InputIteratorTag) {
+void advance(I& i, Distance n, InputIteratorTag) {
     while (n--) {
         ++i;
     }
 }
 
 template <class I, class Distance>
-inline void advance(I& i, Distance n, BidirectionalIteratorTag) {
+void advance(I& i, Distance n, BidirectionalIteratorTag) {
     if (n >= 0) {
         while (n--) {
             ++i;
@@ -131,14 +132,14 @@ inline auto valueType(const Iterator &) {
 
 
 template<class InputIterator>
-inline IteratorTraits<InputIterator>::DifferenceType distance(InputIterator first, InputIterator last) {
+inline auto distance(InputIterator first, InputIterator last) {
     using Category = IteratorTraits<InputIterator>::IteratorCategory;
     return __distance(first, last, Category());
 }
 
 template<class InputIterator>
-inline IteratorTraits<InputIterator>::DifferenceType __distance(InputIterator first, InputIterator last, InputIteratorTag) {
-    auto n = 0;
+auto __distance(InputIterator first, InputIterator last, InputIteratorTag) {
+    IteratorTraits<Iterator>::DifferenceType n = 0;
     while (first != last) {
         first++;
         n++;
@@ -147,7 +148,7 @@ inline IteratorTraits<InputIterator>::DifferenceType __distance(InputIterator fi
 }
 
 template<class InputIterator>
-inline IteratorTraits<InputIterator>::DifferenceType __distance(InputIterator first, InputIterator last, RandomAccessIteratorTag) {
+inline auto __distance(InputIterator first, InputIterator last, RandomAccessIteratorTag) -> decltype(last - first) {
     return last - first;
 }
 
